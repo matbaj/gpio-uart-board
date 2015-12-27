@@ -1,6 +1,6 @@
 DEVICE     = atmega328p
 OBJECTS    = main.o
-
+SERIAL     = /dev/ttyACM0
 
 COMPILE = avr-gcc -Wall -Os -mmcu=$(DEVICE)
  
@@ -16,7 +16,7 @@ all: main.hex
 	$(COMPILE) -S $< -o $@
 
 flash:  all
-	avrdude -V -F -c arduino -p ATMEGA328P -b 115200 -P /dev/ttyUSB0 -U flash:w:main.hex
+	avrdude -V -F -c arduino -p ATMEGA328P -b 115200 -P $(SERIAL) -U flash:w:main.hex
 
 clean:
 	rm -f main.hex main.elf $(OBJECTS) *~

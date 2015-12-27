@@ -2,11 +2,12 @@
  *
  *  Documentatiom:
  *  Frame:
- *  _ _ _ _ O A A A V
+ *  _ _ _ D O A A A V
  *
  *  O - Operation 1-set 0-read
  *  A - Address
  *  V - Value (only used for write)
+ *  D - read/set direction mode
  */
 
 
@@ -31,6 +32,23 @@ static int uart_getchar(void)
 	c = UDR0;
 	addr = c>>1;
 	addr = addr&0x7;
+	if (c&0x20)
+	{
+		/* Set direction mode */
+		if (c&0x10)	{
+			/* write */
+			if (c&0x1)
+				DDRB |= _BV(addr);
+			else
+				DDRB &= ~_BV(addr);
+		} else {
+			/* read */
+			ret = DDRB & _BV(addr) ? 1 : 0;
+			uart_putchar(ret);
+		}
+		return 0;
+	}
+	/* normal operation mode */
 	if (c&0x10)	{
 		/* write */
 		if (c&0x1)
@@ -43,7 +61,7 @@ static int uart_getchar(void)
 		uart_putchar(ret);
 	}
 	/* uart_putchar(c); */
-	return c;
+	return 0;
 }
 
 void uartInit(void)
@@ -61,7 +79,8 @@ void uartInit(void)
 
 int main(void)
 {
-	DDRB |= _BV(DDB5);
+	DDRB = 0; /* Setting all pins as INPUT */
+	PORTB = 0; /* Setting all pins as 0 */
 	uartInit();
 	while (1)
 		uart_getchar();
